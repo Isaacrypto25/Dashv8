@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Produtos</title>
+  <link rel="stylesheet" href="global.css">
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar">
+    <h3 class="logo">OBRAMAX</h3>
+    <a href="dashboard.html">Dashboard</a>
+    <a class="active" href="produtos.html">Produtos</a>
+    <a href="estoque.html">Estoque</a>
+    <a href="pedidos.html">Pedidos</a>
+    <a href="#" onclick="logout()">Sair</a>
+  </aside>
+
+  <main class="content">
+    <h2>Buscar Produto</h2>
+
+    <!-- Área de busca -->
+    <div class="busca-produto">
+      <input
+        type="text"
+        id="codigo"
+        placeholder="Bipe o código do produto"
+        autofocus
+      />
+      <button onclick="buscar()">Confirmar</button>
+    </div>
+
+    <!-- Feedback -->
+    <p id="mensagem" class="mensagem"></p>
+
+    <!-- Resultado do produto -->
+    <div id="resultado" class="resultado-produto"></div>
+  </main>
+</div>
+
+<script src="produtos.js"></script>
+</body>
+</html>
