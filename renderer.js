@@ -6,20 +6,13 @@ const APP = {
         const st = document.getElementById('engine-status');
         try {
             const t = Date.now();
+            const base = './';
+
             const [p, a, m, v] = await Promise.all([
-const base = './'; // ou ajuste se estiver em subpasta
-
-const [p, a, m, v] = await Promise.all([
-    fetch(`${base}produtos.json?t=${t}`).then(r => r.json()),
-    fetch(`${base}auditoria.json?t=${t}`).then(r => r.json()),
-    fetch(`${base}movimento.json?t=${t}`).then(r => r.json()),
-    fetch(`${base}pdv.json?t=${t}`)
-        .then(r => r.ok ? r.json() : [])
-        .catch(() => [])
-]);
-
-
-                fetch(`pdv.json?t=${t}`).catch(() => []).then(r => r.json ? r.json() : [])
+                fetch(`${base}produtos.json?t=${t}`).then(r => r.ok ? r.json() : []),
+                fetch(`${base}auditoria.json?t=${t}`).then(r => r.ok ? r.json() : []),
+                fetch(`${base}movimento.json?t=${t}`).then(r => r.ok ? r.json() : []),
+                fetch(`${base}pdv.json?t=${t}`).then(r => r.ok ? r.json() : [])
             ]);
             
             this.db.auditoria = a; 
@@ -160,11 +153,14 @@ const [p, a, m, v] = await Promise.all([
                             <div class="label" style="color:#fff">${t.desc}</div>
                             <div class="ai-badge" style="margin-top:5px">MOVER: ${t.qtdSolicitada} UN</div>
                         </div>
-                        <span class="material-symbols-outlined" onclick="APP.actions.remFila(${i})" 
+                        <span class="material-symbols-outlined" onclick="APP.actions.remFila(${i})"
                               style="color:var(--success); font-size:40px; cursor:pointer">check_circle</span>
                     </div>
                     <div class="label" style="color:var(--p); margin-top:10px">POSIÇÕES:</div>
-                    ${t.depositos.map(d => `<div class="end-box mono"><span><b>${d.tipo}</b> | ${d.pos}</span><span>Saldo: ${d.q}</span></div>`).join('')}
+                    ${t.depositos.map(d => `
+                        <div class="end-box mono">
+                            <span><b>${d.tipo}</b> | ${d.pos}</span><span>Saldo: ${d.q}</span>
+                        </div>`).join('')}
                 </div>`).join('') || '<div class="op-card" style="text-align:center">Vazio</div>';
         },
 
@@ -189,7 +185,13 @@ const [p, a, m, v] = await Promise.all([
         },
 
         rastreio() {
-            return `<div class="op-card"><span class="label">SKU</span><input type="number" id="sk-r" class="op-input"><button onclick="APP.actions.rastrear()" class="pos-tag">BUSCAR</button></div><div id="res"></div>`;
+            return `
+                <div class="op-card">
+                    <span class="label">SKU</span>
+                    <input type="number" id="sk-r" class="op-input">
+                    <button onclick="APP.actions.rastrear()" class="pos-tag">BUSCAR</button>
+                </div>
+                <div id="res"></div>`;
         }
     },
 
@@ -206,9 +208,15 @@ const [p, a, m, v] = await Promise.all([
         },
         preencher(id) {
             APP.view('bipar');
-            setTimeout(() => { document.getElementById('sk-in').value = id; document.getElementById('qt-in').focus(); }, 100);
+            setTimeout(() => {
+                document.getElementById('sk-in').value = id;
+                document.getElementById('qt-in').focus();
+            }, 100);
         },
-        remFila(i) { APP.db.fila.splice(i, 1); APP.view('operacional'); },
+        remFila(i) {
+            APP.db.fila.splice(i, 1);
+            APP.view('operacional');
+        },
         rastrear() {
             const v = document.getElementById('sk-r').value.trim();
             if(!v) return;
@@ -218,29 +226,56 @@ const [p, a, m, v] = await Promise.all([
             
             let h = "";
             if(pInfo) {
-                h += `<div class="op-card alert-s"><div class="label">ESTOQUE ATUAL</div><b class="mono">${pInfo.id}</b><div class="label" style="color:#fff">${pInfo.desc}</div><div style="margin-top:8px">${pInfo.depositos.map(d => `<div class="end-box mono"><span>${d.tipo} | ${d.pos}</span><b>${d.q}</b></div>`).join('')}</div></div>`;
+                h += `
+                <div class="op-card alert-s">
+                    <div class="label">ESTOQUE ATUAL</div>
+                    <b class="mono">${pInfo.id}</b>
+                    <div class="label" style="color:#fff">${pInfo.desc}</div>
+                    <div style="margin-top:8px">
+                        ${pInfo.depositos.map(d => `
+                            <div class="end-box mono">
+                                <span>${d.tipo} | ${d.pos}</span><b>${d.q}</b>
+                            </div>`).join('')}
+                    </div>
+                </div>`;
             }
-            h += hA.map(a => `<div class="op-card alert-p"><div class="ai-badge">ENTRADA</div><div class="mono">${a["Fornecedor"] || "DOCA"}</div><div class="label">LDAP: ${a["Autor"] || a["Usuário"]}</div></div>`).join('');
-            h += hM.slice(-5).reverse().map(m => `<div class="op-card"><div class="ai-badge" style="background:#444">MOVIMENTAÇÃO</div><div class="mono">${m["PD origem"]} ➔ ${m["PD destino"]}</div><div class="label" style="color:var(--p)">LDAP: ${m["Autor"] || m["Confirmado por"]}</div></div>`).join('');
+            h += hA.map(a => `
+                <div class="op-card alert-p">
+                    <div class="ai-badge">ENTRADA</div>
+                    <div class="mono">${a["Fornecedor"] || "DOCA"}</div>
+                    <div class="label">LDAP: ${a["Autor"] || a["Usuário"]}</div>
+                </div>`).join('');
+            h += hM.slice(-5).reverse().map(m => `
+                <div class="op-card">
+                    <div class="ai-badge" style="background:#444">MOVIMENTAÇÃO</div>
+                    <div class="mono">${m["PD origem"]} ➔ ${m["PD destino"]}</div>
+                    <div class="label" style="color:var(--p)">LDAP: ${m["Autor"] || m["Confirmado por"]}</div>
+                </div>`).join('');
             document.getElementById('res').innerHTML = h || '<div class="op-card">Vazio</div>';
         }
     },
 
     view(v, btn, p) {
-        if(btn) { document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+        if(btn) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
         document.getElementById('stage').innerHTML = this.views[v] ? this.views[v](p) : '';
     },
 
     animateValue(id, start, end, duration) {
-        const obj = document.getElementById(id); if(!obj) return;
+        const obj = document.getElementById(id);
+        if(!obj) return;
         let startT = null;
         const step = (t) => {
             if (!startT) startT = t;
             const progress = Math.min((t - startT) / duration, 1);
-            obj.innerHTML = (progress * (end - start) + start).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            obj.innerHTML = (progress * (end - start) + start)
+                .toLocaleString('pt-BR', { minimumFractionDigits: 2 });
             if (progress < 1) window.requestAnimationFrame(step);
         };
         window.requestAnimationFrame(step);
     }
 };
+
 window.onload = () => APP.init();
