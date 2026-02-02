@@ -1,276 +1,237 @@
+const APP = {
+    db: { produtos: [], auditoria: [], fila: [], movimento: [], pdv: [] },
+    rankings: { produtos: [] },
 
-// --- ESTADO GLOBAL ---
-let produtosAgrupados = [];
-let filaOperacional = [];
-let vendasData = [];
-let auditoriaData = [];
-let filtroStatus = 'todos';
-
-const fornecedoresSimulados = ["Tigre", "Fortlev", "Docol", "Deca", "Amanco Wavin", "Krona", "Lorenzetti", "Astra"];
-
-// --- DICIONÁRIO DE SINÔNIMOS ADICIONADO ---
-const sinonimos = {
-    "BCH": "BUCHA", "LT": "LATAO", "AZ": "AZUL", "SOLD": "SOLDAVEL",
-    "20X1/2": "20MMX1/2", "JG": "JOGO", "P/": "PARA", "PVP": "PVC"
-};
-
-// Função para normalizar textos alterada para suportar os sinônimos
-const normalizar = (t) => {
-    let texto = String(t || "").trim().toUpperCase().replace(/\s+/g, ' ');
-    // Aplica os sinônimos
-    Object.keys(sinonimos).forEach(chave => {
-        const regex = new RegExp(`\\b${chave}\\b`, 'g');
-        texto = texto.replace(regex, sinonimos[chave]);
-    });
-    return texto;
-};
-
-async function init() {
-    try {
-        const [resProd, resVendas, resAudit] = await Promise.all([
-            fetch('produtos.json?t=' + Date.now()).then(r => r.json()),
-            fetch('pdv.json?t=' + Date.now()).then(r => r.json()).catch(() => []),
-            fetch('auditoria.json?t=' + Date.now()).then(r => r.json()).catch(() => [])
-        ]);
-
-        vendasData = resVendas;
-        auditoriaData = resAudit;
-
-        const mapa = {};
-
-        resProd.forEach(p => {
-            const sku = String(p["Produto"]).trim();
-            if (!sku) return;
+    async init() {
+        const st = document.getElementById('engine-status');
+        try {
+            const t = Date.now();
+            const [p, a, m, v] = await Promise.all([
+                fetch(`produtos.json?t=${t}`).then(r => r.json()),
+                fetch(`auditoria.json?t=${t}`).then(r => r.json()),
+                fetch(`movimento.json?t=${t}`).then(r => r.json()),
+                fetch(`pdv.json?t=${t}`).catch(() => []).then(r => r.json ? r.json() : [])
+            ]);
             
+            this.db.auditoria = a; 
+            this.db.movimento = m; 
+            this.db.pdv = v;
+            
+            this.processarEstoque(p);
+            this.processarRanking(); 
+            
+            st.innerText = '● K11 ONLINE'; 
+            st.style.color = 'var(--success)';
+            this.view('dash', document.querySelector('.nav-btn'));
+        } catch (e) { 
+            st.innerText = 'OFFLINE'; 
+            st.style.color = 'var(--danger)';
+            console.error(e);
+        }
+    },
+
+    processarEstoque(data) {
+        const mapa = {};
+        data.forEach(p => {
+            const sku = String(p["Produto"] || p["Nº do produto"] || "").trim();
+            if (!sku) return;
+
             if (!mapa[sku]) {
                 mapa[sku] = { 
                     id: sku, 
-                    desc: p["Descrição produto"] || "Sem descrição", 
-                    descBusca: normalizar(p["Descrição produto"]),
-                    ael: { q: 0, pos: "S/E" }, 
-                    pkl: { q: 0, pos: "S/E" }, 
-                    totalVal: 0 
+                    desc: p["Descrição produto"] || p["Texto breve material"] || "NOME NÃO LOCALIZADO", 
+                    depositos: [], 
+                    qtdTotal: 0,
+                    valTotal: 0 
                 };
             }
 
-            const q = parseInt(p["Quantidade"]) || 0;
-            const v = parseFloat(p["Valor total"]) || 0;
-            const pos = p["Posição no depósito"] || "S/E";
-            const tipo = String(p["Tipo de depósito"]).toUpperCase();
-
-            if (tipo.includes("AEL")) {
-                mapa[sku].ael = { q: q, pos: pos };
-            } else {
-                mapa[sku].pkl = { q: q, pos: pos };
-            }
-            mapa[sku].totalVal += v;
+            const q = parseFloat(String(p["Quantidade"] || "0").replace(',', '.'));
+            mapa[sku].depositos.push({ 
+                pos: p["Posição no depósito"] || "S/E", 
+                tipo: String(p["Tipo de depósito"] || "").toUpperCase(), 
+                q: q 
+            });
+            mapa[sku].qtdTotal += q;
+            mapa[sku].valTotal += parseFloat(p["Valor total"] || 0);
         });
 
-        produtosAgrupados = Object.values(mapa).map((p, i) => {
-            const total = p.ael.q + p.pkl.q;
-            p.fornecedor = fornecedoresSimulados[i % fornecedoresSimulados.length];
-            p.status = total === 0 ? 'ruptura' : (p.pkl.q < 100 ? 'alerta' : 'saudavel');
+        this.db.produtos = Object.values(mapa).map(p => {
+            const sPKL = p.depositos.filter(d => d.tipo === "PKL").reduce((a, b) => a + b.q, 0);
+            const sRES = p.depositos.filter(d => d.tipo !== "PKL").reduce((a, b) => a + b.q, 0);
+            
+            if (p.qtdTotal <= 0) p.status = 'ruptura';
+            else if (sPKL <= 0 && sRES > 0) p.status = 'abastecimento';
+            else p.status = 'saudavel';
+            
             return p;
         });
-
-        irPara('dashboard');
-    } catch (e) { console.error("Erro no init:", e); }
-}
-
-const Screens = {
-    dashboard: () => {
-        const totalEstoque = produtosAgrupados.reduce((a, b) => a + b.totalVal, 0);
-        const volumeVendas = vendasData.reduce((a, b) => a + (parseInt(b["Quantidade vendida"]) || 0), 0);
-        return `
-            <h2>Resumo Geral</h2>
-            <div class="grid-dashboard">
-                <div class="card-unificado dash-card main">
-                    <small>VALOR TOTAL ESTOQUE</small>
-                    <h3>R$ ${totalEstoque.toLocaleString('pt-BR')}</h3>
-                </div>
-                <div class="card-unificado dash-card" onclick="irPara('pdv')">
-                    <small>ITENS VENDIDOS</small>
-                    <h3>${volumeVendas} Un</h3>
-                </div>
-                <div class="card-unificado dash-card" onclick="irPara('operacional')">
-                    <small>FILA ATIVA</small>
-                    <h3>${filaOperacional.length} Itens</h3>
-                </div>
-            </div>
-            <h3 style="margin-top:20px">Status do Depósito</h3>
-            <div class="kpi-container">
-                <div class="kpi-card red" onclick="setFiltroDash('ruptura')"><span>${produtosAgrupados.filter(x=>x.status==='ruptura').length}</span><small>Faltas</small></div>
-                <div class="kpi-card yellow" onclick="setFiltroDash('alerta')"><span>${produtosAgrupados.filter(x=>x.status==='alerta').length}</span><small>Alertas</small></div>
-                <div class="kpi-card green" onclick="setFiltroDash('saudavel')"><span>${produtosAgrupados.filter(x=>x.status==='saudavel').length}</span><small>Saudável</small></div>
-            </div>
-        `;
     },
 
-    pdv: () => PDVManager.gerarTela(vendasData),
-
-    gerenciador: () => `
-        <h2>Bipar Entrada</h2>
-        <div class="card-unificado">
-            <label>SKU</label>
-            <input type="number" id="sku-in" class="input-glass" placeholder="00000000" autofocus>
-            <label>QTD</label>
-            <input type="number" id="qtd-in" class="input-glass" value="1">
-            <button onclick="addFila()" class="btn-primary">ENVIAR PARA OPERACIONAL</button>
-            <p id="feedback" style="margin-top:10px; text-align:center"></p>
-        </div>
-    `,
-
-    operacional: () => `
-        <h2>Fila de Trabalho</h2>
-        ${filaOperacional.map((t, i) => `
-            <div class="card-unificado">
-                <div style="display:flex; justify-content:space-between">
-                    <div style="flex:1">
-                        <b style="color:var(--primary)">SKU: ${t.id}</b>
-                        <p style="font-size:12px; margin:5px 0">${t.desc}</p>
-                        <div class="end-box">
-                            <div><small>PULMÃO (AEL)</small><br><b>${t.ael.pos} (${t.ael.q} un)</b></div>
-                            <div style="border-left:1px solid #ddd; padding-left:10px"><small>PICKING (PKL)</small><br><b>${t.pkl.pos} (${t.pkl.q} un)</b></div>
-                        </div>
-                        <div style="margin-top:8px; font-size:11px; font-weight:bold; color:var(--primary)">SOLICITADO: ${t.qtdPedida} UN</div>
-                    </div>
-                    <button onclick="remFila(${i})" class="btn-check" style="margin-left:10px"><span class="material-symbols-outlined">done</span></button>
-                </div>
-            </div>
-        `).join('') || '<p style="text-align:center; padding:40px; opacity:0.5">Sem pendências.</p>'}
-    `,
-
-    estoque: () => `
-        <h2>Inventário</h2>
-        <div class="kpi-container">
-            <div class="kpi-card red ${filtroStatus==='ruptura'?'active':''}" onclick="setFiltro('ruptura')">Faltas</div>
-            <div class="kpi-card yellow ${filtroStatus==='alerta'?'active':''}" onclick="setFiltro('alerta')">Alertas</div>
-            <div class="kpi-card green ${filtroStatus==='saudavel'?'active':''}" onclick="setFiltro('saudavel')">OK</div>
-        </div>
-        ${produtosAgrupados.filter(p => filtroStatus === 'todos' || p.status === filtroStatus).map(p => `
-            <div class="card-unificado ${p.status}">
-                <b>SKU: ${p.id}</b>
-                <p style="font-size:11px; margin:5px 0">${p.desc}</p>
-                <div class="end-box">
-                    <span>AEL: ${p.ael.pos} (${p.ael.q})</span>
-                    <span>PKL: ${p.pkl.pos} (${p.pkl.q})</span>
-                </div>
-            </div>
-        `).join('')}
-    `,
-
-    fornecedores: () => {
-        const grupos = auditoriaData.reduce((acc, item) => {
-            const f = item["Fornecedor"] || "DIVERSOS";
-            if (!acc[f]) acc[f] = [];
-            acc[f].push(item);
-            return acc;
-        }, {});
-
-        return `
-            <h2>Auditoria por Fornecedor</h2>
-            <div class="grid-fornecedores">
-                ${Object.entries(grupos).map(([nome, notas]) => {
-                    // Utilizando unescape para evitar problemas com caracteres especiais no btoa
-                    const idSafe = btoa(unescape(encodeURIComponent(nome))).replace(/=/g, '');
-                    return `
-                    <div class="card-unificado" style="border-top: 4px solid var(--primary); margin-bottom: 20px;">
-                        <div onclick="toggleFornecedor('${idSafe}')" style="cursor:pointer">
-                            <h3 style="color:var(--primary); margin: 0 0 5px 0; font-size: 16px;">${nome}</h3>
-                            <small style="display:block; margin-bottom:10px; opacity:0.7">${notas.length} nota(s) pendente(s)</small>
-                        </div>
-                        
-                        <div id="content-${idSafe}" style="display:none; border-top: 1px solid #eee; padding-top:10px">
-                            <button class="btn-primary" style="width:100%; margin-bottom:15px" onclick="analisarPosicoes('${idSafe}', '${nome}')">BUSCAR ENDEREÇOS NO ESTOQUE</button>
-                            <div id="lista-${idSafe}">
-                                ${notas.map(n => `
-                                    <div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-bottom:8px; border: 1px solid #eee;">
-                                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px">
-                                            <b>NF: ${n["Nota Fiscal"]}</b>
-                                        </div>
-                                        <p style="font-size:10px; margin:0 0 5px 0; font-weight:500">${n["Descrição"]}</p>
-                                        <div style="display:flex; justify-content:space-between; font-size:9px; opacity:0.8">
-                                            <span>Qtd: ${n["Qtde Confirmada"]}</span>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-                `}).join('') || '<p style="text-align:center; opacity:0.5; padding:40px">Nenhuma auditoria.</p>'}
-            </div>
-        `;
-    }
-};
-
-// --- LOGICA DE CRUZAMENTO ATUALIZADA (Busca Inteligente + Trava de Marca) ---
-window.analisarPosicoes = (idSafe, nomeFornecedor) => {
-    const notas = auditoriaData.filter(a => a["Fornecedor"] === nomeFornecedor);
-    const container = document.getElementById(`lista-${idSafe}`);
-    const marcaAlvo = nomeFornecedor.toUpperCase();
-    
-    container.innerHTML = notas.map(n => {
-        const busca = normalizar(n["Descrição"]);
-        
-        // Busca Flexível: Tenta encontrar o produto no estoque que contenha a marca E pelo menos 2 palavras da descrição
-        const p = produtosAgrupados.find(est => {
-            const palavrasNota = busca.split(" ").filter(w => w.length > 2);
-            const comuns = palavrasNota.filter(pal => est.descBusca.includes(pal));
-            // Critério: Marca deve bater E ter similaridade de palavras
-            return est.descBusca.includes(marcaAlvo) && comuns.length >= 2;
+    processarRanking() {
+        const vds = {};
+        this.db.pdv.forEach(v => {
+            const id = String(v["Nº do produto"] || v["Produto"] || "").trim();
+            const q = parseFloat(String(v["Quantidade vendida"] || "0").replace(',', '.'));
+            if (id && q > 0) vds[id] = (vds[id] || 0) + q;
         });
         
-        const vaiParaChao = !p || p.pkl.q < 100; 
-        const cor = p ? (vaiParaChao ? "#27ae60" : "#2980b9") : "#ff4757";
-        const endereco = p ? (vaiParaChao ? p.pkl.pos : p.ael.pos) : 'NÃO LOCALIZADO';
+        this.rankings.produtos = Object.entries(vds)
+            .sort((a,b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([id, q]) => {
+                const pInfo = this.db.produtos.find(x => x.id === id);
+                return { id, q, desc: pInfo ? pInfo.desc : "PRODUTO FORA DE ESTOQUE" };
+            });
+    },
 
-        return `
-            <div style="background:#fff; padding:12px; border-radius:8px; margin-top:8px; border-left:6px solid ${cor}; border:1px solid #eee">
-                <b style="font-size:11px; display:block; color:#333">${n["Descrição"]}</b>
-                <div style="display:flex; justify-content:space-between; margin-top:8px; align-items:center">
-                    <div style="font-size:10px">
-                        <span style="opacity:0.7">DESTINO:</span> <b style="color:${cor}">${p ? (vaiParaChao ? 'CHÃO (PKL)' : 'AÉREO (AEL)') : '---'}</b><br>
-                        <span style="opacity:0.7">ENDEREÇO:</span> <b style="color:#222; font-size:12px">${endereco}</b>
+    views: {
+        dash() {
+            const nR = APP.db.produtos.filter(x => x.status === 'ruptura').length;
+            const nA = APP.db.produtos.filter(x => x.status === 'abastecimento').length;
+            const vT = APP.db.produtos.reduce((a, b) => a + b.valTotal, 0);
+
+            setTimeout(() => APP.animateValue('val-inv', 0, vT, 1000), 50);
+
+            return `
+                <div class="op-card alert-p">
+                    <div class="ai-badge">VALOR EM ESTOQUE</div>
+                    <div class="mono" style="font-size:24px; color:var(--p)">R$ <span id="val-inv">0</span></div>
+                </div>
+
+                <div class="kpi-row">
+                    <div class="kpi-btn" onclick="APP.view('estoque', null, 'ruptura')">
+                        <span class="label">Rupturas</span><b style="color:var(--danger)">${nR}</b>
                     </div>
-                    <div style="text-align:right">
-                        <small style="display:block; font-size:9px; opacity:0.6">QTD</small>
-                        <b style="font-size:14px">${n["Qtde Confirmada"]}</b>
+                    <div class="kpi-btn" onclick="APP.view('estoque', null, 'abastecimento')">
+                        <span class="label">Repor PKL</span><b style="color:var(--p)">${nA}</b>
                     </div>
                 </div>
-                ${p ? `<div style="font-size:8px; color:gray; margin-top:5px; border-top:1px dashed #eee; padding-top:3px">Ref. Estoque: ${p.desc}</div>` : ''}
-            </div>
-        `;
-    }).join('');
-};
 
-// --- NAVEGAÇÃO E AUXILIARES ---
-window.irPara = (t) => {
-    document.querySelectorAll('.nav-link').forEach(n => n.classList.toggle('active', n.getAttribute('data-target') === t));
-    render(t);
-};
+                <div class="op-card">
+                    <span class="label">Top Giro (Saídas PDV)</span>
+                    ${APP.rankings.produtos.map(r => `
+                        <div style="padding:10px 0; border-bottom:1px solid #222">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px">
+                                <b class="mono" style="color:var(--p); font-size:14px">${r.id}</b>
+                                <span class="ai-badge" style="margin:0">${r.q} un</span>
+                            </div>
+                            <div class="label truncate" style="color:var(--txt); font-size:11px; opacity:0.9">${r.desc}</div>
+                        </div>
+                    `).join('') || '<div class="label">Sem dados de giro</div>'}
+                </div>
+                
+                <div class="kpi-row">
+                    <div class="kpi-btn" style="text-align:left">
+                        <span class="label">Entradas</span><b class="mono">${APP.db.auditoria.length}</b>
+                    </div>
+                    <div class="kpi-btn" style="text-align:left">
+                        <span class="label">Tarefas</span><b class="mono">${APP.db.movimento.length}</b>
+                    </div>
+                </div>`;
+        },
 
-window.render = (t) => { document.getElementById('main-view').innerHTML = Screens[t](); window.scrollTo(0,0); };
+        bipar() {
+            return `
+                <div class="op-card">
+                    <span class="label">1. SKU</span>
+                    <input type="number" id="sk-in" class="op-input" autofocus>
+                    <span class="label">2. Quantidade</span>
+                    <input type="number" id="qt-in" class="op-input">
+                    <button onclick="APP.actions.addFila()" class="pos-tag">LANÇAR NA LISTA</button>
+                </div>`;
+        },
 
-window.toggleFornecedor = (id) => {
-    const c = document.getElementById(`content-${id}`);
-    c.style.display = c.style.display === "block" ? "none" : "block";
-};
+        operacional() {
+            return APP.db.fila.map((t, i) => `
+                <div class="op-card alert-s">
+                    <div style="display:flex; justify-content:space-between">
+                        <div>
+                            <b class="mono">${t.id}</b>
+                            <div class="label" style="color:#fff">${t.desc}</div>
+                            <div class="ai-badge" style="margin-top:5px">MOVER: ${t.qtdSolicitada} UN</div>
+                        </div>
+                        <span class="material-symbols-outlined" onclick="APP.actions.remFila(${i})" 
+                              style="color:var(--success); font-size:40px; cursor:pointer">check_circle</span>
+                    </div>
+                    <div class="label" style="color:var(--p); margin-top:10px">POSIÇÕES:</div>
+                    ${t.depositos.map(d => `<div class="end-box mono"><span><b>${d.tipo}</b> | ${d.pos}</span><span>Saldo: ${d.q}</span></div>`).join('')}
+                </div>`).join('') || '<div class="op-card" style="text-align:center">Vazio</div>';
+        },
 
-window.addFila = () => {
-    const sku = document.getElementById('sku-in').value;
-    const p = produtosAgrupados.find(x => String(x.id) === sku);
-    if(p) { 
-        filaOperacional.push({...p, qtdPedida: document.getElementById('qtd-in').value}); 
-        document.getElementById('feedback').innerText = "✅ Adicionado!";
-        setTimeout(() => irPara('operacional'), 600);
-    } else {
-        document.getElementById('feedback').innerText = "❌ SKU Inválido";
+        estoque(f = 'ruptura') {
+            const lista = APP.db.produtos.filter(p => p.status === f);
+            return `
+                <div class="kpi-row">
+                    <div class="kpi-btn" onclick="APP.view('estoque', null, 'ruptura')" style="${f==='ruptura'?'border-color:var(--danger)':''}">RUPTURA</div>
+                    <div class="kpi-btn" onclick="APP.view('estoque', null, 'abastecimento')" style="${f==='abastecimento'?'border-color:var(--p)':''}">ABASTECER</div>
+                </div>
+                ${lista.map(p => `
+                    <div class="op-card" onclick="APP.actions.preencher('${p.id}')">
+                        <b class="mono">${p.id}</b>
+                        <div class="label" style="color:#fff">${p.desc}</div>
+                        <div style="margin-top:8px">
+                            ${p.depositos.map(d => `
+                                <div class="end-box mono" style="font-size:10px; padding:4px">
+                                    <span>${d.tipo} | ${d.pos}</span><b>${d.q}</b>
+                                </div>`).join('')}
+                        </div>
+                    </div>`).join('')}`;
+        },
+
+        rastreio() {
+            return `<div class="op-card"><span class="label">SKU</span><input type="number" id="sk-r" class="op-input"><button onclick="APP.actions.rastrear()" class="pos-tag">BUSCAR</button></div><div id="res"></div>`;
+        }
+    },
+
+    actions: {
+        addFila() {
+            const s = document.getElementById('sk-in').value.trim();
+            const q = parseFloat(document.getElementById('qt-in').value);
+            const p = APP.db.produtos.find(x => x.id === s);
+            if(!p) return alert("SKU não encontrado!");
+            if(!q || q <= 0) return alert("Quantidade inválida!");
+            if(q > p.qtdTotal) return alert(`Saldo insuficiente: ${p.qtdTotal}`);
+            APP.db.fila.push({ ...p, qtdSolicitada: q });
+            APP.view('operacional');
+        },
+        preencher(id) {
+            APP.view('bipar');
+            setTimeout(() => { document.getElementById('sk-in').value = id; document.getElementById('qt-in').focus(); }, 100);
+        },
+        remFila(i) { APP.db.fila.splice(i, 1); APP.view('operacional'); },
+        rastrear() {
+            const v = document.getElementById('sk-r').value.trim();
+            if(!v) return;
+            const pInfo = APP.db.produtos.find(x => x.id === v);
+            const hM = APP.db.movimento.filter(m => String(m["Produto"]) === v);
+            const hA = APP.db.auditoria.filter(a => String(a["Produto"] || a["Nº do produto"]) === v);
+            
+            let h = "";
+            if(pInfo) {
+                h += `<div class="op-card alert-s"><div class="label">ESTOQUE ATUAL</div><b class="mono">${pInfo.id}</b><div class="label" style="color:#fff">${pInfo.desc}</div><div style="margin-top:8px">${pInfo.depositos.map(d => `<div class="end-box mono"><span>${d.tipo} | ${d.pos}</span><b>${d.q}</b></div>`).join('')}</div></div>`;
+            }
+            h += hA.map(a => `<div class="op-card alert-p"><div class="ai-badge">ENTRADA</div><div class="mono">${a["Fornecedor"] || "DOCA"}</div><div class="label">LDAP: ${a["Autor"] || a["Usuário"]}</div></div>`).join('');
+            h += hM.slice(-5).reverse().map(m => `<div class="op-card"><div class="ai-badge" style="background:#444">MOVIMENTAÇÃO</div><div class="mono">${m["PD origem"]} ➔ ${m["PD destino"]}</div><div class="label" style="color:var(--p)">LDAP: ${m["Autor"] || m["Confirmado por"]}</div></div>`).join('');
+            document.getElementById('res').innerHTML = h || '<div class="op-card">Vazio</div>';
+        }
+    },
+
+    view(v, btn, p) {
+        if(btn) { document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+        document.getElementById('stage').innerHTML = this.views[v] ? this.views[v](p) : '';
+    },
+
+    animateValue(id, start, end, duration) {
+        const obj = document.getElementById(id); if(!obj) return;
+        let startT = null;
+        const step = (t) => {
+            if (!startT) startT = t;
+            const progress = Math.min((t - startT) / duration, 1);
+            obj.innerHTML = (progress * (end - start) + start).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+            if (progress < 1) window.requestAnimationFrame(step);
+        };
+        window.requestAnimationFrame(step);
     }
 };
-
-window.remFila = (i) => { filaOperacional.splice(i, 1); render('operacional'); };
-window.setFiltroDash = (s) => { filtroStatus = s; irPara('estoque'); };
-window.setFiltro = (s) => { filtroStatus = filtroStatus === s ? 'todos' : s; render('estoque'); };
-
-document.addEventListener('DOMContentLoaded', init);
-document.querySelectorAll('.nav-link').forEach(l => l.onclick = (e) => { e.preventDefault(); irPara(l.getAttribute('data-target')); });
+window.onload = () => APP.init();
