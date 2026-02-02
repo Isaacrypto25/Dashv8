@@ -1,47 +1,45 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Obramax Smart Log</title>
-  <link rel="stylesheet" href="global.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OMNI-K11 CORE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0" />
+    <style>
+        :root { --p: #FF6B00; --bg: #050505; --card: #121212; --border: #222; --txt: #FFFFFF; --txt-sec: #999; --danger: #FF3B30; --success: #00FF41; }
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        body { background: var(--bg); color: var(--txt); font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; }
+        .top-bar { position: fixed; top: 0; width: 100%; height: 55px; background: #000; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid var(--border); z-index: 1001; }
+        .logo-container { font-weight: 900; color: var(--p); letter-spacing: -1px; font-size: 16px; }
+        #stage { height: calc(100vh - 130px); overflow-y: auto; padding: 15px; margin-top: 55px; }
+        .op-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 15px; margin-bottom: 12px; }
+        .ai-badge { background: var(--p); color: #000; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 900; margin-bottom: 8px; display: inline-block; }
+        .kpi-row { display: flex; gap: 8px; margin: 10px 0; }
+        .kpi-btn { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; }
+        .op-input { width: 100%; padding: 18px; background: #000; border: 1px solid #333; border-radius: 8px; color: var(--p); font-family: 'Roboto Mono'; font-size: 22px; text-align: center; margin-bottom: 15px; }
+        .pos-tag { background: var(--p); color: #000; padding: 15px; width: 100%; border: none; border-radius: 8px; font-weight: 900; text-transform: uppercase; cursor: pointer; }
+        .main-nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: #000; border-top: 1px solid var(--border); display: flex; }
+        .nav-btn { flex: 1; background: none; border: none; color: var(--txt-sec); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; gap: 5px; opacity: 0.6; }
+        .nav-btn.active { color: var(--p); opacity: 1; }
+        .mono { font-family: 'Roboto Mono', monospace; }
+        .label { font-size: 9px; text-transform: uppercase; color: var(--txt-sec); margin-bottom: 5px; display: block; }
+        .end-box { background: #1a1a1a; padding: 8px; border-radius: 5px; margin-top: 5px; font-size: 11px; border: 1px solid #222; }
+    </style>
 </head>
 <body>
-  
-  <div class="content">
-    <section id="main-view"></section>
-  </div>
-
-  <nav class="sidebar__nav">
-    <a href="#" class="nav-link active" data-target="dashboard">
-      <span class="material-symbols-outlined">home</span>
-      <small>Início</small>
-    </a>
-    <a href="#" class="nav-link" data-target="gerenciador">
-      <span class="material-symbols-outlined">barcode_scanner</span>
-      <small>Bipar</small>
-    </a>
-    <a href="#" class="nav-link" data-target="operacional">
-      <span class="material-symbols-outlined">list_alt</span>
-      <small>Fila</small>
-    </a>
-    <a href="#" class="nav-link" data-target="pdv">
-      <span class="material-symbols-outlined">monitoring</span>
-      <small>PDV</small>
-    </a>
-    <a href="#" class="nav-link" data-target="estoque">
-      <span class="material-symbols-outlined">inventory_2</span>
-      <small>Estoque</small>
-    </a>
-    <a href="#" class="nav-link" data-target="fornecedores">
-      <span class="material-symbols-outlined">trolley</span>
-      <small>Audit</small>
-    </a>
-  </nav>
-  <script src="pdv.js"></script>
-<script src="renderer.js"></script>
+    <header class="top-bar">
+        <div class="logo-container">OBRAMAX <span style="font-weight:400; opacity:0.6">K11 CORE</span></div>
+        <div id="engine-status" class="mono" style="font-size:10px">SYNC...</div>
+    </header>
+    <main id="stage"></main>
+    <nav class="main-nav">
+        <button class="nav-btn" onclick="APP.view('dash', this)"><span class="material-symbols-outlined">analytics</span><span>Dash</span></button>
+        <button class="nav-btn" onclick="APP.view('bipar', this)"><span class="material-symbols-outlined">barcode_scanner</span><span>Bipar</span></button>
+        <button class="nav-btn" onclick="APP.view('operacional', this)"><span class="material-symbols-outlined">route</span><span>Rotas</span></button>
+        <button class="nav-btn" onclick="APP.view('rastreio', this)"><span class="material-symbols-outlined">search_insights</span><span>Investigar</span></button>
+        <button class="nav-btn" onclick="APP.view('estoque', this)"><span class="material-symbols-outlined">inventory_2</span><span>Estoque</span></button>
+    </nav>
+    <script src="renderer.js"></script>
 </body>
-
-</htm
 </html>
