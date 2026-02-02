@@ -7,9 +7,18 @@ const APP = {
         try {
             const t = Date.now();
             const [p, a, m, v] = await Promise.all([
-                fetch(`produtos.json?t=${t}`).then(r => r.json()),
-                fetch(`auditoria.json?t=${t}`).then(r => r.json()),
-                fetch(`movimento.json?t=${t}`).then(r => r.json()),
+const base = './'; // ou ajuste se estiver em subpasta
+
+const [p, a, m, v] = await Promise.all([
+    fetch(`${base}produtos.json?t=${t}`).then(r => r.json()),
+    fetch(`${base}auditoria.json?t=${t}`).then(r => r.json()),
+    fetch(`${base}movimento.json?t=${t}`).then(r => r.json()),
+    fetch(`${base}pdv.json?t=${t}`)
+        .then(r => r.ok ? r.json() : [])
+        .catch(() => [])
+]);
+
+
                 fetch(`pdv.json?t=${t}`).catch(() => []).then(r => r.json ? r.json() : [])
             ]);
             
