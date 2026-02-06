@@ -1,206 +1,298 @@
 [
- {
-   "Posição no depósito": "HIDRAULICA",
-   "Pedido": 8120050986,
-   "Produto": 89598292,
-   "Descrição": "ADAPT INT M ESPIG PT 3/4 TAIVI",
-   "Qtde confirmada": "100",
-   "UM básica": "UN",
-   "Lote": "",
-   "Hr.entr.mercadorias": "08:39:33",
-   "Data EM": "2026-01-26",
-   "Inv.fís.ativo": "",
-   "UC superior": 8120050986,
-   "Documento": 410000505567,
-   "Nº do item": 10,
-   "Peso de carga": 1.7,
-   "FIELD15": ""
- },
- {
-   "Posição no depósito": "HIDRAULICA",
-   "Pedido": 8120050986,
-   "Produto": 89598306,
-   "Descrição": "ADAPT INT M ESPIG PT 1 TAIVI",
-   "Qtde confirmada": 50,
-   "UM básica": "UN",
-   "Lote": "",
-   "Hr.entr.mercadorias": "08:39:33",
-   "Data EM": "2026-01-26",
-   "Inv.fís.ativo": "",
-   "UC superior": 8120050986,
-   "Documento": 410000505567,
-   "Nº do item": 20,
-   "Peso de carga": 1.05,
-   "FIELD15": ""
- },
- {
-   "Posição no depósito": "HIDRAULICA",
-   "Pedido": 8120050986,
-   "Produto": 89598313,
-   "Descrição": "ADAPT INT RED M ESPIG PT 3/4X1/2 TAIVI",
-   "Qtde confirmada": 150,
-   "UM básica": "UN",
-   "Lote": "",
-   "Hr.entr.mercadorias": "08:39:33",
-   "Data EM": "2026-01-26",
-   "Inv.fís.ativo": "",
-   "UC superior": 8120050986,
-   "Documento": 410000505567,
-   "Nº do item": 30,
-   "Peso de carga": 2.1,
-   "FIELD15": ""
- },
- {
-   "Posição no depósito": "HIDRAULICA",
-   "Pedido": 8120050986,
-   "Produto": 89598320,
-   "Descrição": "ADAPT INT RED M ESPIG PT 1X3/4 TAIVI",
-   "Qtde confirmada": 342,
-   "UM básica": "UN",
-   "Lote": "",
-   "Hr.entr.mercadorias": "08:39:33",
-   "Data EM": "2026-01-26",
-   "Inv.fís.ativo": "",
-   "UC superior": 8120050986,
-   "Documento": 410000505567,
-   "Nº do item": 40,
-   "Peso de carga": 6.156,
-   "FIELD15": ""
- },
- {
-   "Posição no depósito": "HIDRAULICA",
-   "Pedido": 8120050986,
-   "Produto": 89598446,
-   "Descrição": "UNIAO ESPIGAO PT 1/2 TAIVI",
-   "Qtde confirmada": 100,
-   "UM básica": "UN",
-   "Lote": "",
-   "Hr.entr.mercadorias": "08:39:33",
-   "Data EM": "2026-01-26",
-   "Inv.fís.ativo": "",
-   "UC superior": 8120050986,
-   "Documento": 410000505567,
-   "Nº do item": 50,
-   "Peso de carga": 1,
-   "FIELD15": ""
- },
- {
-   "Posição no depósito": "HIDRAULICA",
-   "Pedido": 8120050986,
-   "Produto": 89598460,
-   "Descrição": "UNIAO ESPIGAO PT 1 TAIVI",
-   "Qtde confirmada": 300,
-   "UM básica": "UN",
-   "Lote": "",
-   "Hr.entr.mercadorias": "08:39:33",
-   "Data EM": "2026-01-26",
-   "Inv.fís.ativo": "",
-   "UC superior": 8120050986,
-   "Documento": 410000505567,
-   "Nº do item": 60,
-   "Peso de carga": 6.6,
-   "FIELD15": ""
- },
- {
-   "Posição no depósito": "HIDRAULICA",
-   "Pedido": 8120050985,
-   "Produto": 89735576,
-   "Descrição": "KIT MANG REF 7/16 10M VD E1,5 TAIV",
-   "Qtde confirmada": 51,
-   "UM básica": "UN",
-   "Lote": "",
-   "Hr.entr.mercadorias": "08:39:36",
-   "Data EM": "2026-01-26",
-   "Inv.fís.ativo": "",
-   "UC superior": 8120050985,
-   "Documento": 410000505567,
-   "Nº do item": 90,
-   "Peso de carga": 53.04,
-   "FIELD15": ""
- },
- {
-   "Posição no depósito": "HIDRAULICA",
-   "Pedido": 8120050985,
-   "Produto": 89735583,
-   "Descrição": "KIT MANG REF 7/16 15M VD E1,5 TAIV",
-   "Qtde confirmada": 45,
-   "UM básica": "UN",
-   "Lote": "",
-   "Hr.entr.mercadorias": "08:39:36",
-   "Data EM": "2026-01-26",
-   "Inv.fís.ativo": "",
-   "UC superior": 8120050985,
-   "Documento": 410000505567,
-   "Nº do item": 100,
-   "Peso de carga": 69.3,
-   "FIELD15": ""
- },
- {
-   "Posição no depósito": "HIDRAULICA",
-   "Pedido": 8120050982,
-   "Produto": 89735590,
-   "Descrição": "KIT MANG REF 7/16 20M VD E1,5 TAIV",
-   "Qtde confirmada": 30,
-   "UM básica": "UN",
-   "Lote": "",
-   "Hr.entr.mercadorias": "08:39:37",
-   "Data EM": "2026-01-26",
-   "Inv.fís.ativo": "",
-   "UC superior": 8120050982,
-   "Documento": 410000505567,
-   "Nº do item": 110,
-   "Peso de carga": 61.2,
-   "FIELD15": ""
- },
- {
-   "Posição no depósito": "HIDRAULICA",
-   "Pedido": 8120050982,
-   "Produto": 89735604,
-   "Descrição": "KIT MANG REF 7/16 30M VD E1,5 TAIV",
-   "Qtde confirmada": 48,
-   "UM básica": "UN",
-   "Lote": "",
-   "Hr.entr.mercadorias": "08:39:37",
-   "Data EM": "2026-01-26",
-   "Inv.fís.ativo": "",
-   "UC superior": 8120050982,
-   "Documento": 410000505567,
-   "Nº do item": 120,
-   "Peso de carga": 145.92,
-   "FIELD15": ""
- },
- {
-   "Posição no depósito": "HIDRAULICA",
-   "Pedido": 8120050984,
-   "Produto": 89735534,
-   "Descrição": "MANG REF PVC 3/4 VD E2,3 TAIVI",
-   "Qtde confirmada": 1000,
-   "UM básica": "M",
-   "Lote": "",
-   "Hr.entr.mercadorias": "08:39:38",
-   "Data EM": "2026-01-26",
-   "Inv.fís.ativo": "",
-   "UC superior": 8120050984,
-   "Documento": 410000505567,
-   "Nº do item": 70,
-   "Peso de carga": 258,
-   "FIELD15": ""
- },
- {
-   "Posição no depósito": "HIDRAULICA",
-   "Pedido": 8120050983,
-   "Produto": 89735534,
-   "Descrição": "MANG REF PVC 3/4 VD E2,3 TAIVI",
-   "Qtde confirmada": 1000,
-   "UM básica": "M",
-   "Lote": "",
-   "Hr.entr.mercadorias": "08:39:39",
-   "Data EM": "2026-01-26",
-   "Inv.fís.ativo": "",
-   "UC superior": 8120050983,
-   "Documento": 410000505567,
-   "Nº do item": 80,
-   "Peso de carga": 258,
-   "FIELD15": ""
- }
+  {
+    "cod_comprador": 89470493,
+    "descricao": "1603 VALV LAVAT 7/8 S/L",
+    "qtde_confirmada": 144,
+    "emissao_nf": "23/01/2026",
+    "nota_fiscal": "182358-001",
+    "pedido": "4500494931"
+  },
+  {
+    "cod_comprador": 89470591,
+    "descricao": "2300 PARAF LATAO L SANIT LUXO B10 80 MM C/ 02",
+    "qtde_confirmada": 240,
+    "emissao_nf": "23/01/2026",
+    "nota_fiscal": "182358-001",
+    "pedido": "4500494931"
+  },
+  {
+    "cod_comprador": 89572014,
+    "descricao": "1015 GRELHA INOX ROT QUADRADA 100MM",
+    "qtde_confirmada": 160,
+    "emissao_nf": "23/01/2026",
+    "nota_fiscal": "182358-001",
+    "pedido": "4500494931"
+  },
+  {
+    "cod_comprador": 89572056,
+    "descricao": "1015 GRELHA INOX ROT C/ CAIX QUADRADA 100MM",
+    "qtde_confirmada": 204,
+    "emissao_nf": "23/01/2026",
+    "nota_fiscal": "182358-001",
+    "pedido": "4500494931"
+  },
+  {
+    "cod_comprador": 89111050,
+    "descricao": "HIDRO FILTER POE 9.3/4\" - ECO",
+    "qtde_confirmada": 64,
+    "emissao_nf": "28/01/2026",
+    "nota_fiscal": "002532-000",
+    "pedido": "4500478744"
+  },
+  {
+    "cod_comprador": 89111064,
+    "descricao": "REFIL P/ FILTRO DE ÁGUA P/ PONTO DE ENTRADA POLYFLOW 9.3/4\" 25 MICRA PLISSADO - HIDROFILTROS",
+    "qtde_confirmada": 30,
+    "emissao_nf": "28/01/2026",
+    "nota_fiscal": "002532-000",
+    "pedido": "4500478744"
+  },
+  {
+    "cod_comprador": 89111085,
+    "descricao": "FILTRO P/ ÁGUA HIDRO FILTER BIG POE 10\" BR POLY FLOW",
+    "qtde_confirmada": 3,
+    "emissao_nf": "28/01/2026",
+    "nota_fiscal": "002532-000",
+    "pedido": "4500478744"
+  },
+  {
+    "cod_comprador": 89111113,
+    "descricao": "HIDRO FILTER POU 9.3/4\" TR CARBON_CB",
+    "qtde_confirmada": 8,
+    "emissao_nf": "28/01/2026",
+    "nota_fiscal": "002532-000",
+    "pedido": "4500478744"
+  },
+  {
+    "cod_comprador": 89111120,
+    "descricao": "FILTRO P/ ÁGUA HIDRO FILTER POU 5\" TR CARBON_CB",
+    "qtde_confirmada": 32,
+    "emissao_nf": "28/01/2026",
+    "nota_fiscal": "002532-000",
+    "pedido": "4500478744"
+  },
+  {
+    "cod_comprador": 89111141,
+    "descricao": "ELEMENTO FILTRANTE PARA ÁGUA CARBON BLOCK 5\"/2,5\"/HF",
+    "qtde_confirmada": 18,
+    "emissao_nf": "28/01/2026",
+    "nota_fiscal": "002532-000",
+    "pedido": "4500478744"
+  },
+  {
+    "cod_comprador": 89111155,
+    "descricao": "ELEMENTO FILTRANTE PARA ÁGUA CARBON BLOCK 7\"/2,5\"/HF",
+    "qtde_confirmada": 6,
+    "emissao_nf": "28/01/2026",
+    "nota_fiscal": "002532-000",
+    "pedido": "4500478744"
+  },
+  {
+    "cod_comprador": 89111162,
+    "descricao": "ELEMENTO FILTRANTE PARA ÁGUA REFIL CARBON BLOCK 9.3/4\"",
+    "qtde_confirmada": 24,
+    "emissao_nf": "28/01/2026",
+    "nota_fiscal": "002532-000",
+    "pedido": "4500478744"
+  },
+  {
+    "cod_comprador": 89111225,
+    "descricao": "SUPORTE SINGLE PLASTICO - CARCAÇAS SLIM",
+    "qtde_confirmada": 12,
+    "emissao_nf": "28/01/2026",
+    "nota_fiscal": "002532-000",
+    "pedido": "4500478744"
+  },
+  {
+    "cod_comprador": 89572315,
+    "descricao": "HIDRO FILTER POU 7\" BR CARBON_CB",
+    "qtde_confirmada": 8,
+    "emissao_nf": "28/01/2026",
+    "nota_fiscal": "002532-000",
+    "pedido": "4500478744"
+  },
+  {
+    "cod_comprador": 89572441,
+    "descricao": "REFIL ECO 25 MICRA 9.3/4\"",
+    "qtde_confirmada": 30,
+    "emissao_nf": "28/01/2026",
+    "nota_fiscal": "002532-000",
+    "pedido": "4500478744"
+  },
+  {
+    "cod_comprador": 89268886,
+    "descricao": "VD 484 1.1/2 BP DOCOL BS",
+    "qtde_confirmada": 10,
+    "emissao_nf": "20/01/2026",
+    "nota_fiscal": "540563-008",
+    "pedido": "4500480926"
+  },
+  {
+    "cod_comprador": 89268886,
+    "descricao": "VD 484 1.1/2 BP DOCOL BS",
+    "qtde_confirmada": 10,
+    "emissao_nf": "20/01/2026",
+    "nota_fiscal": "540573-008",
+    "pedido": "4500474859"
+  },
+  {
+    "cod_comprador": 89269173,
+    "descricao": "TOR ME PRESS CPACT CR",
+    "qtde_confirmada": 20,
+    "emissao_nf": "20/01/2026",
+    "nota_fiscal": "540430-008",
+    "pedido": "4500444836"
+  },
+  {
+    "cod_comprador": 89282711,
+    "descricao": "ACAB VD ESP GP",
+    "qtde_confirmada": 7,
+    "emissao_nf": "20/01/2026",
+    "nota_fiscal": "540563-008",
+    "pedido": "4500480926"
+  },
+  {
+    "cod_comprador": 89282711,
+    "descricao": "ACAB VD ESP GP",
+    "qtde_confirmada": 3,
+    "emissao_nf": "20/01/2026",
+    "nota_fiscal": "540573-008",
+    "pedido": "4500474859"
+  },
+  {
+    "cod_comprador": 89282711,
+    "descricao": "ACAB VD ESP GP",
+    "qtde_confirmada": 2,
+    "emissao_nf": "21/01/2026",
+    "nota_fiscal": "540947-008",
+    "pedido": "4500490223"
+  },
+  {
+    "cod_comprador": 89720176,
+    "descricao": "BASE MIST MO BAN OU CHU 1/2\" E 3/4\" AP",
+    "qtde_confirmada": 4,
+    "emissao_nf": "20/01/2026",
+    "nota_fiscal": "540573-008",
+    "pedido": "4500474859"
+  },
+  {
+    "cod_comprador": 89720190,
+    "descricao": "RG DOCOL BASE 3/4",
+    "qtde_confirmada": 32,
+    "emissao_nf": "20/01/2026",
+    "nota_fiscal": "540563-008",
+    "pedido": "4500480926"
+  },
+  {
+    "cod_comprador": 89720190,
+    "descricao": "RG DOCOL BASE 3/4",
+    "qtde_confirmada": 128,
+    "emissao_nf": "20/01/2026",
+    "nota_fiscal": "540573-008",
+    "pedido": "4500474859"
+  },
+  {
+    "cod_comprador": 89720253,
+    "descricao": "RP DOCOL BASE 3/4",
+    "qtde_confirmada": 130,
+    "emissao_nf": "20/01/2026",
+    "nota_fiscal": "540573-008",
+    "pedido": "4500474859"
+  },
+  {
+    "cod_comprador": 89720253,
+    "descricao": "RP DOCOL BASE 3/4",
+    "qtde_confirmada": 38,
+    "emissao_nf": "21/01/2026",
+    "nota_fiscal": "540947-008",
+    "pedido": "4500490223"
+  },
+  {
+    "cod_comprador": 89720316,
+    "descricao": "RG DOCOL BASE 1",
+    "qtde_confirmada": 18,
+    "emissao_nf": "20/01/2026",
+    "nota_fiscal": "540573-008",
+    "pedido": "4500474859"
+  },
+  {
+    "cod_comprador": 89720323,
+    "descricao": "RG DOCOL BASE 1.1/2",
+    "qtde_confirmada": 8,
+    "emissao_nf": "20/01/2026",
+    "nota_fiscal": "540563-008",
+    "pedido": "4500480926"
+  },
+  {
+    "cod_comprador": 89720323,
+    "descricao": "RG DOCOL BASE 1.1/2",
+    "qtde_confirmada": 1,
+    "emissao_nf": "21/01/2026",
+    "nota_fiscal": "540947-008",
+    "pedido": "4500490223"
+  },
+  {
+    "cod_comprador": 89949566,
+    "descricao": "CP60H 127V/60HZ(M) 0,37KW-1/2CV MOTOBOMBA PERIFERICA",
+    "qtde_confirmada": 300,
+    "emissao_nf": "22/01/2026",
+    "nota_fiscal": "020752-001",
+    "pedido": "4500494932"
+  },
+  {
+    "cod_comprador": 89357751,
+    "descricao": "AQUECEDOR DE AGUA A GAS BI-VOLT",
+    "qtde_confirmada": 2,
+    "emissao_nf": "22/01/2026",
+    "nota_fiscal": "592798-005",
+    "pedido": "4500495887"
+  },
+  {
+    "cod_comprador": 89564874,
+    "descricao": "ACABAMENTO FLUX VALVULA DESCARGA NOVA FLUX BR (A-3653-BR-BR)",
+    "qtde_confirmada": 4,
+    "emissao_nf": "22/01/2026",
+    "nota_fiscal": "050345-001",
+    "pedido": "4500474594"
+  },
+  {
+    "cod_comprador": 89564895,
+    "descricao": "ACABAMENTO FLUX VALVULA DESCARGA NOVA FLUX CR (A-3653-FX-CR)",
+    "qtde_confirmada": 4,
+    "emissao_nf": "22/01/2026",
+    "nota_fiscal": "050345-001",
+    "pedido": "4500474594"
+  },
+  {
+    "cod_comprador": 89564902,
+    "descricao": "ACABAMENTO MUND VALVULA DESCARGA NOVA FLUX CR (A-3653-MD-CR)",
+    "qtde_confirmada": 4,
+    "emissao_nf": "22/01/2026",
+    "nota_fiscal": "050345-001",
+    "pedido": "4500474594"
+  },
+  {
+    "cod_comprador": 89911794,
+    "descricao": "EXTENSOR SALVA REGISTRO (*)",
+    "qtde_confirmada": 18,
+    "emissao_nf": "28/01/2026",
+    "nota_fiscal": "050790-001",
+    "pedido": "4500474594"
+  },
+  {
+    "cod_comprador": 89911801,
+    "descricao": "ACABAMENTO VALVULA FLUX CR/PR (A-3650-CR/PR)",
+    "qtde_confirmada": 28,
+    "emissao_nf": "28/01/2026",
+    "nota_fiscal": "050790-001",
+    "pedido": "4500474594"
+  },
+  {
+    "cod_comprador": 89911836,
+    "descricao": "REGISTRO DE PRESSAO 1/2 COM ACAB NOVA GYRO (C-1416-1/2-NGY-CR)",
+    "qtde_confirmada": 48,
+    "emissao_nf": "22/01/2026",
+    "nota_fiscal": "050345-001",
+    "pedido": "4500474594"
+  }
 ]
