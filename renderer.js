@@ -8,18 +8,31 @@ const APP = {
     rankings: { growth: [], decline: [] },
     ui: { rankingAberto: false, filtroEstoque: 'ruptura' },
 
-    async init() {
+        async init() {
         const st = document.getElementById('engine-status');
         try {
             const t = Date.now();
-            const [p, a, m, v, tar] = await Promise.all([
-                fetch(`./produtos.json?t=${t}`).then(r => r.json()),
-                fetch(`./auditoria.json?t=${t}`).then(r => r.json()),
-                fetch(`./movimento.json?t=${t}`).then(r => r.json()),
-                fetch(`./pdv.json?t=${t}`).catch(() => []).then(r => r.json()),
-                fetch(`./tarefas.json?t=${t}`).then(r => r.json())
-            ]);
             
+            // Função auxiliar para evitar que um erro 404 mate o sistema inteiro
+            const safeFetch = async (url) => {
+                try {
+                    const r = await fetch(url);
+                    if (!r.ok) return []; // Se não achar o arquivo, retorna lista vazia
+                    return await r.json();
+                } catch (e) {
+                    console.error("Erro ao carregar:", url);
+                    return [];
+                }
+            };
+
+            // Carregamento individual para garantir estabilidade
+            const p = await safeFetch(`./produtos.json?t=${t}`);
+            const a = await safeFetch(`./auditoria.json?t=${t}`);
+            const m = await safeFetch(`./movimento.json?t=${t}`);
+            const v = await safeFetch(`./pdv.json?t=${t}`);
+            const tar = await safeFetch(`./tarefas.json?t=${t}`);
+            
+            // Mapeamento dos dados (Mesma lógica sua)
             this.db.auditoria = a.map((item, index) => ({
                 id: `uc-${index}`,
                 fornecedor: item["Fornecedor"] || "N/A",
@@ -32,7 +45,7 @@ const APP = {
 
             this.db.movimento = m;
             this.db.pdv = v;
-            this.db.tarefas = tar.map((t, i) => ({ ...t, id: i }));
+            this.db.tarefas = tar.map((t, i) => ({ ...t, id: i, task: t.task || "Tarefa sem nome" }));
             
             this.processarEstoque(p);
             this.processarBI_DualTrend(); 
@@ -41,7 +54,8 @@ const APP = {
             st.style.color = 'var(--success)';
             this.view('dash', document.querySelector('.nav-btn'));
         } catch (e) { 
-            st.innerText = 'SISTEMA OFFLINE'; 
+            console.error("Falha Crítica:", e);
+            st.innerText = 'ERRO DE SINTAXE NO JSON'; 
             st.style.color = 'var(--danger)';
         }
     },
