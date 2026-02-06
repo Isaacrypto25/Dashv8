@@ -1,6 +1,7 @@
 /**
  * K11 OPERATIONAL OS - OMNI ELITE VERSION 2026
- * ENGINE: LOGISTICS TRACEABILITY (PD CORRIGIDO)
+ * ENGINE: LOGISTICS TRACEABILITY & WAREHOUSE FLOW
+ * ESTADO: ESTÁVEL PARA GITHUB PAGES
  */
 
 const APP = {
@@ -8,31 +9,36 @@ const APP = {
     rankings: { growth: [], decline: [] },
     ui: { rankingAberto: false, filtroEstoque: 'ruptura' },
 
-        async init() {
+    async init() {
         const st = document.getElementById('engine-status');
         try {
             const t = Date.now();
             
-            // Função auxiliar para evitar que um erro 404 mate o sistema inteiro
+            // Função de carregamento resiliente para ambiente GitHub Pages
             const safeFetch = async (url) => {
                 try {
                     const r = await fetch(url);
-                    if (!r.ok) return []; // Se não achar o arquivo, retorna lista vazia
+                    if (!r.ok) {
+                        console.warn(`Arquivo não encontrado (404): ${url}`);
+                        return [];
+                    }
                     return await r.json();
                 } catch (e) {
-                    console.error("Erro ao carregar:", url);
+                    console.error(`Erro de sintaxe no JSON: ${url}`, e);
                     return [];
                 }
             };
 
-            // Carregamento individual para garantir estabilidade
-            const p = await safeFetch(`./produtos.json?t=${t}`);
-            const a = await safeFetch(`./auditoria.json?t=${t}`);
-            const m = await safeFetch(`./movimento.json?t=${t}`);
-            const v = await safeFetch(`./pdv.json?t=${t}`);
-            const tar = await safeFetch(`./tarefas.json?t=${t}`);
+            // Carregamento paralelo com tratamento individual de erros
+            const [p, a, m, v, tar] = await Promise.all([
+                safeFetch(`./produtos.json?t=${t}`),
+                safeFetch(`./auditoria.json?t=${t}`),
+                safeFetch(`./movimento.json?t=${t}`),
+                safeFetch(`./pdv.json?t=${t}`),
+                safeFetch(`./tarefas.json?t=${t}`)
+            ]);
             
-            // Mapeamento dos dados (Mesma lógica sua)
+            // Processamento do Recebimento (Auditoria)
             this.db.auditoria = a.map((item, index) => ({
                 id: `uc-${index}`,
                 fornecedor: item["Fornecedor"] || "N/A",
@@ -45,7 +51,11 @@ const APP = {
 
             this.db.movimento = m;
             this.db.pdv = v;
-            this.db.tarefas = tar.map((t, i) => ({ ...t, id: i, task: t.task || "Tarefa sem nome" }));
+            this.db.tarefas = tar.map((t, i) => ({ 
+                ...t, 
+                id: i, 
+                task: t.task || t["Tarefa"] || "Tarefa sem descrição" 
+            }));
             
             this.processarEstoque(p);
             this.processarBI_DualTrend(); 
@@ -54,8 +64,8 @@ const APP = {
             st.style.color = 'var(--success)';
             this.view('dash', document.querySelector('.nav-btn'));
         } catch (e) { 
-            console.error("Falha Crítica:", e);
-            st.innerText = 'ERRO DE SINTAXE NO JSON'; 
+            console.error("Falha na inicialização do APP:", e);
+            st.innerText = 'ERRO DE EXECUÇÃO'; 
             st.style.color = 'var(--danger)';
         }
     },
@@ -288,18 +298,18 @@ const APP = {
                             <div class="end-box mono" style="display:block; font-size:9px; background:rgba(0,0,0,0.3); margin-bottom:10px; border-left:2px solid var(--success); padding:10px">
                                 <div style="display:flex; justify-content:space-between; margin-bottom:5px">
                                     <b style="color:var(--success)">${m["Descr.ctg.processo depósito"] || 'TRANSFERÊNCIA'}</b>
-                                    <span style="opacity:0.6">${m["Data de criação"] || ''} ${m["Hora da criação"] || ''}</span>
+                                    <span style="opacity:0.6">${m["Data de criação"] || ''}</span>
                                 </div>
                                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin:8px 0; padding:5px; background:rgba(255,255,255,0.03); border-radius:4px">
                                     <div>
                                         <div style="font-size:7px; opacity:0.5">ORIGEM</div>
                                         <b style="color:var(--p)">${m["Tp.depósito origem"] || 'N/A'}</b>
-                                        <div style="font-size:10px; color:#fff">${m["PD origem"] || 'S/E'}</div>
+                                        <div style="font-size:10px; color:#fff">${m["PD origem"] || m["Pos.depósito origem"] || 'S/E'}</div>
                                     </div>
                                     <div>
                                         <div style="font-size:7px; opacity:0.5">DESTINO</div>
                                         <b style="color:var(--success)">${m["Tipo depós.destino"] || 'N/A'}</b>
-                                        <div style="font-size:10px; color:#fff">${m["PD destino"] || 'S/E'}</div>
+                                        <div style="font-size:10px; color:#fff">${m["PD destino"] || m["Pos.depósito destino"] || 'S/E'}</div>
                                     </div>
                                 </div>
                                 <div style="border-top:1px solid #222; padding-top:5px; display:flex; justify-content:space-between; align-items:center">
