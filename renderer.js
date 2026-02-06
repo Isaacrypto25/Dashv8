@@ -40,14 +40,15 @@ const APP = {
             
             // Processamento do Recebimento (Auditoria)
             this.db.auditoria = a.map((item, index) => ({
-                id: `uc-${index}`,
-                fornecedor: item["Fornecedor"] || "N/A",
-                desc: item["Descrição"] || "N/A",
-                qtd: item["Qtde Confirmada"] || "0",
-                nf: item["Nota Fiscal"] || "N/A",
-                pedido: item["Pedido"] || "N/A",
-                done: false
-            }));
+    id: `uc-${index}`,
+    fornecedor: item.cod_comprador ?? "N/A",
+    desc: item.descricao ?? "N/A",
+    qtd: item.qtde_confirmada ?? 0,
+    nf: item.nota_fiscal ?? "N/A",
+    pedido: item.pedido ?? "N/A",
+    done: false
+}));
+
 
             this.db.movimento = m;
             this.db.pdv = v;
