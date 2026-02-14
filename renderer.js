@@ -1,6 +1,7 @@
 /**
- * K11 OPERATIONAL OS - OMNI ELITE VERSION 2026
- * INTEGRATED: DUELO PDV, RASTREIO INDUSTRIAL & UC GLOBAL DPA
+ * K11 OPERATIONAL OS - OMNI ELITE 2026
+ * Módulo: renderer.js
+ * Funcionalidades: Gestão de Estoque, UC Global (DPA), BI de Vendas e Rastreio
  */
 
 const APP = {
@@ -54,14 +55,14 @@ const APP = {
             this.processarEstoque(p);
             this.processarDueloAqua(); 
             this.processarBI_DualTrend();
-            this.processarUCGlobal_DPA(); // Nova Inteligência
+            this.processarUCGlobal_DPA(); // Nova Inteligência DPA
             
             st.innerText = '● K11 OMNI ONLINE'; 
             st.style.color = '#28a745';
             this.view('dash', document.querySelector('.nav-btn'));
         } catch (e) { 
             st.innerText = 'ERRO DE CARREGAMENTO'; 
-            console.error(e);
+            console.error("Erro no Init:", e);
         }
     },
 
@@ -92,21 +93,34 @@ const APP = {
 
     processarUCGlobal_DPA() {
         const gargalo = [];
+        
+        // Mapeia SKUs que possuem pelo menos um movimento de saída originado no DPA
+        const saidasDoDPA = new Set(
+            this.db.movimento
+                .filter(m => (m["Tp.depósito origem"] === "DPA" || m["PD origem"] === "HIDRAULICA"))
+                .map(m => String(m["Produto"]).trim())
+        );
+
         this.db.produtos.forEach(prod => {
             const noDPA = prod.depositos.find(d => d.tipo === "DPA" && d.q > 0);
+            
             if (noDPA) {
-                // Verifica se existe movimento de SAÍDA do DPA para esse produto
-                const temSaida = this.db.movimento.some(m => 
-                    String(m["Produto"] || m["Nº do produto"]).trim() === prod.id &&
-                    (m["Tp.depósito origem"] === "DPA" || m["Pos.depósito origem"] === noDPA.pos)
-                );
+                // Se tem saldo no DPA mas NÃO tem registro de saída no histórico
+                if (!saidasDoDPA.has(prod.id)) {
+                    
+                    // Busca a tarefa de entrada para detalhes
+                    const entrada = this.db.movimento.find(m => 
+                        String(m["Produto"]).trim() === prod.id && 
+                        m["Tipo depós.destino"] === "DPA"
+                    );
 
-                if (!temSaida) {
                     gargalo.push({
                         id: prod.id,
                         desc: prod.desc,
                         qtdDPA: noDPA.q,
                         posDPA: noDPA.pos,
+                        dataEntrada: entrada ? entrada["Data da confirmação"] : "---",
+                        tarefa: entrada ? entrada["Tarefa de depósito"] : "N/A",
                         posicoes: prod.depositos.map(d => ({
                             ...d,
                             ocupacao: Math.min(Math.round((d.q / this.CAPACIDADE_PADRAO) * 100), 100)
@@ -176,7 +190,7 @@ const APP = {
             const nA = APP.db.produtos.filter(x => x.status === 'abastecimento').length;
             const vT = APP.db.produtos.reduce((a, b) => a + b.valTotal, 0);
             const percT = APP.db.tarefas.length > 0 ? Math.round((APP.db.tarefas.filter(t => t.done).length / APP.db.tarefas.length) * 100) : 0;
-            const percUC = APP.db.auditoria.length > 0 ? Math.round((APP.db.auditoria.filter(a => a.done).length / APP.db.auditoria.length) * 100) : 0;
+            const countUC = APP.db.ucGlobal.length;
             
             setTimeout(() => APP.actions.animateValue('val-inv', 0, vT, 1200), 50);
 
@@ -201,7 +215,7 @@ const APP = {
                         <span class="label">Checklist</span>
                     </div>
                     <div class="kpi-btn" onclick="APP.view('detalheUC')">
-                        <div class="circular-progress" style="--p-perc:${percUC}; --color: var(--secondary)"><span>${percUC}%</span></div>
+                        <div class="circular-progress" style="--p-perc:${countUC > 0 ? 100 : 0}; --color: ${countUC > 0 ? 'var(--danger)' : 'var(--success)'}"><span>${countUC}</span></div>
                         <span class="label">UC Global</span>
                     </div>
                 </div>
@@ -230,20 +244,20 @@ const APP = {
         detalheUC() {
             return `
                 <div class="op-card alert-p">
-                    <span class="label">UC GLOBAL - ENTRADAS DPA SEM FLUXO</span>
+                    <span class="label">UC GLOBAL - GARGALOS NO DPA</span>
                     <div style="margin-top:15px; margin-bottom:80px">
                         ${APP.db.ucGlobal.map(item => `
                             <div class="op-card" style="border-left: 4px solid var(--danger); margin: 10px 0;">
                                 <div style="display:flex; justify-content:space-between">
                                     <b class="mono" style="color:var(--danger)">${item.id}</b>
-                                    <span style="font-size:10px; font-weight:bold; color:var(--danger)">PENDENTE DPA</span>
+                                    <span style="font-size:10px; font-weight:bold; color:var(--danger)">SEM SAÍDA DPA</span>
                                 </div>
-                                <div style="font-size:12px; margin: 5px 0">${item.desc}</div>
-                                <div class="end-box" style="background:#fff3f3; border:1px solid #ffcccc">
-                                    <span>POSIÇÃO DPA: <b>${item.posDPA}</b></span>
-                                    <b>${item.qtdDPA} un</b>
+                                <div style="font-size:12px; margin: 5px 0"><b>${item.desc}</b></div>
+                                <div class="end-box" style="background:#fff3f3; font-size:10px">
+                                    DPA: <b>${item.posDPA}</b> | QTD: <b>${item.qtdDPA}</b><br>
+                                    Entrada: ${item.dataEntrada} | Tarefa: ${item.tarefa}
                                 </div>
-                                <div class="label" style="margin-top:10px; font-size:8px">CAPACIDADE EM OUTROS ENDEREÇOS:</div>
+                                <div class="label" style="margin-top:10px; font-size:8px">CAPACIDADE NAS POSIÇÕES FIXAS:</div>
                                 ${item.posicoes.filter(p => p.tipo !== "DPA").map(p => `
                                     <div style="margin-top:5px">
                                         <div style="display:flex; justify-content:space-between; font-size:9px">
@@ -255,9 +269,9 @@ const APP = {
                                         </div>
                                     </div>
                                 `).join('')}
-                                <button class="pos-tag" style="margin-top:10px; height:35px; padding:0" onclick="APP.actions.preencher('${item.id}')">LANÇAR MOVIMENTAÇÃO</button>
+                                <button class="pos-tag" style="margin-top:10px; height:35px" onclick="APP.actions.preencher('${item.id}')">LANÇAR MOVIMENTO</button>
                             </div>
-                        `).join('') || '<div class="op-card">SEM PENDÊNCIAS NO DPA</div>'}
+                        `).join('') || '<div class="op-card" style="text-align:center">NÃO HÁ PRODUTOS PARADOS NO DPA</div>'}
                     </div>
                     <button class="pos-tag" style="position:fixed; bottom:80px; left:5%; width:90%" onclick="APP.view('dash')">VOLTAR</button>
                 </div>`;
@@ -266,21 +280,21 @@ const APP = {
         operacional() {
             return `<div style="margin-bottom:80px">
                 <div class="op-card alert-s" style="padding:20px"><span class="label">BIPAR SKU</span><input type="number" id="sk-in" class="op-input"><input type="number" id="qt-in" class="op-input" placeholder="QTD"><button onclick="APP.actions.addFila()" class="pos-tag">LANÇAR NA FILA</button></div>
-                <div class="label" style="margin-left:15px">FILA DE ROTAS</div>
+                <div class="label" style="margin-left:15px">FILA DE MOVIMENTAÇÃO (ROTAS)</div>
                 ${APP.db.fila.map((t, i) => `<div class="op-card alert-s">
                     <div style="display:flex; justify-content:space-between">
                         <div><b class="mono" style="font-size:18px">${t.id}</b><div style="font-size:11px">${t.desc}</div><b style="color:var(--primary)">QTD: ${t.qtdSolicitada}</b></div>
-                        <span class="material-symbols-outlined" onclick="APP.actions.remFila(${i})" style="color:var(--success); font-size:40px">task_alt</span>
+                        <span class="material-symbols-outlined" onclick="APP.actions.remFila(${i})" style="color:var(--success); font-size:40px; cursor:pointer">task_alt</span>
                     </div>
                     <div style="margin-top:10px; background:#f4f4f4; padding:8px; border-radius:4px">
                         ${t.depositos.map(d => `<div class="end-box mono" style="font-size:10px; border:none; background:none"><span>${d.tipo} | <b>${d.pos}</b></span> <b>${d.q} un</b></div>`).join('')}
                     </div>
-                </div>`).join('') || '<div class="op-card" style="text-align:center; opacity:0.5">FILA VAZIA</div>'}
+                </div>`).join('') || '<div class="op-card" style="text-align:center; opacity:0.5">VAZIO</div>'}
             </div>`;
         },
 
         rastreio() {
-            return `<div class="op-card alert-p"><span class="label">RASTREIO DE FLUXO INDUSTRIAL</span><input type="number" id="sk-r" class="op-input" placeholder="SKU..."><button onclick="APP.actions.rastrear()" class="pos-tag">PESQUISAR HISTÓRICO</button></div><div id="res-investigar" style="margin-bottom:80px"></div>`;
+            return `<div class="op-card alert-p"><span class="label">INVESTIGAR FLUXO</span><input type="number" id="sk-r" class="op-input" placeholder="SKU..."><button onclick="APP.actions.rastrear()" class="pos-tag">PESQUISAR</button></div><div id="res-investigar" style="margin-bottom:80px"></div>`;
         },
 
         projetor() {
@@ -289,7 +303,7 @@ const APP = {
                 <div class="duel-selector" style="display:flex; gap:5px; padding:0 12px; margin-bottom:10px">
                     ${['mesquita','jacarepagua','benfica'].map(l => `<button style="flex:1; padding:10px; border:none; border-radius:4px; font-size:10px; font-weight:bold; background:${APP.ui.pdvAlvo===l?'var(--primary)':'var(--secondary)'}; color:#fff" onclick="APP.actions.mudarAlvo('${l}')">${l.toUpperCase()}</button>`).join('')}
                 </div>
-                <div class="op-card"><div class="label">LOSS GAP GLOBAL: ${APP.rankings.meta.lossGap}%</div><input type="text" placeholder="BUSCAR SKU OU DESCRIÇÃO..." class="op-input" oninput="APP.actions.filtrarDuelo(this.value)" value="${APP.ui.buscaDuelo}"></div>
+                <div class="op-card"><div class="label">LOSS GAP: ${APP.rankings.meta.lossGap}%</div><input type="text" placeholder="FILTRAR..." class="op-input" oninput="APP.actions.filtrarDuelo(this.value)" value="${APP.ui.buscaDuelo}"></div>
                 <div style="margin-bottom:80px">
                     ${lista.map(g => `<div class="op-card" style="border-left:5px solid ${g.status.bg}">
                         <div style="display:flex; justify-content:space-between"><b class="mono">${g.id}</b><div style="background:${g.status.bg}; color:#fff; padding:2px 6px; font-size:9px; border-radius:3px; font-weight:bold">${g.status.label}</div></div>
@@ -309,7 +323,7 @@ const APP = {
                 <div style="margin-bottom:80px">${lista.map(p => `<div class="op-card" onclick="APP.actions.preencher('${p.id}')"><div style="display:flex; justify-content:space-between"><b class="mono">${p.id}</b><b>${p.qtdTotal} UN</b></div><div style="font-weight:700; font-size:13px; margin:5px 0">${p.desc}</div>
                 ${p.depositos.map(d => `<div class="end-box mono" style="font-size:10px"><span>${d.tipo} | <b>${d.pos}</b></span> <b>${d.q}</b></div>`).join('')}</div>`).join('')}</div>`;
         },
-        detalheTarefas() { return `<div class="op-card alert-s"><span class="label">CONFERÊNCIA DE ROTINA</span><div style="margin-top:15px; margin-bottom:80px">${APP.db.tarefas.map(t => `<div class="end-box" style="${t.done?'opacity:0.4':''}"><span>${t.task}</span><span class="material-symbols-outlined" onclick="APP.actions.toggleTask(${t.id})" style="color:${t.done?'var(--success)':'#ccc'}">${t.done?'check_box':'check_box_outline_blank'}</span></div>`).join('')}</div><button class="pos-tag" style="position:fixed; bottom:80px; left:5%; width:90%" onclick="APP.view('dash')">VOLTAR</button></div>`; }
+        detalheTarefas() { return `<div class="op-card alert-s"><span class="label">CHECKLIST</span><div style="margin-top:15px; margin-bottom:80px">${APP.db.tarefas.map(t => `<div class="end-box" style="${t.done?'opacity:0.4':''}"><span>${t.task}</span><span class="material-symbols-outlined" onclick="APP.actions.toggleTask(${t.id})" style="color:${t.done?'var(--success)':'#ccc'}">${t.done?'check_box':'check_box_outline_blank'}</span></div>`).join('')}</div><button class="pos-tag" style="position:fixed; bottom:80px; left:5%; width:90%" onclick="APP.view('dash')">VOLTAR</button></div>`; }
     },
 
     actions: {
@@ -332,7 +346,7 @@ const APP = {
             const p = APP.db.produtos.find(x => x.id === v);
             const movs = APP.db.movimento.filter(m => String(m["Produto"] || m["Nº do produto"]).trim() === v);
             
-            if(!p) return res.innerHTML = `<div class="op-card">SKU NÃO ENCONTRADO</div>`;
+            if(!p) return res.innerHTML = `<div class="op-card">SKU NÃO LOCALIZADO</div>`;
 
             res.innerHTML = `
                 <div class="op-card alert-s">
@@ -340,14 +354,14 @@ const APP = {
                     <div class="label">${p.desc}</div>
                     <div class="label" style="margin-top:15px; color:var(--primary)">ESTOQUE ATUAL</div>
                     ${p.depositos.map(d => `<div class="end-box mono" style="font-size:10px"><span>${d.tipo} | <b>${d.pos}</b></span> <b>${d.q} un</b></div>`).join('')}
-                    <div class="label" style="margin-top:15px; color:var(--success)">HISTÓRICO DE FLUXO INDUSTRIAL</div>
-                    ${movs.length ? movs.reverse().slice(0,12).map(m => `
+                    <div class="label" style="margin-top:15px; color:var(--success)">HISTÓRICO DE TAREFAS</div>
+                    ${movs.length ? movs.reverse().slice(0,10).map(m => `
                         <div class="end-box mono" style="display:block; font-size:9px; border-left:3px solid var(--primary)">
-                            <div style="display:flex; justify-content:space-between"><b>${m["Data de criação"] || m["Data"] || 'S/D'}</b> <span>${m["Quantidade confirmada"] || ''} un</span></div>
-                            DE: <b>${m["Pos.depósito origem"] || m["PD origem"] || m["Origem"] || 'S/E'}</b> (${m["Tp.depósito origem"] || ''})<br>
-                            PARA: <b>${m["Pos.depósito destino"] || m["PD destino"] || m["Destino"] || 'S/E'}</b> (${m["Tipo depós.destino"] || ''})
+                            <div style="display:flex; justify-content:space-between"><b>${m["Data da confirmação"] || m["Data"] || 'S/D'}</b> <span>#${m["Tarefa de depósito"] || ''}</span></div>
+                            DE: <b>${m["PD origem"] || m["Pos.depósito origem"] || 'S/E'}</b> (${m["Tp.depósito origem"] || ''})<br>
+                            PARA: <b>${m["PD destino"] || m["Pos.depósito destino"] || 'S/E'}</b> (${m["Tipo depós.destino"] || ''})
                         </div>
-                    `).join('') : '<div class="end-box">Nenhum movimento encontrado no histórico.</div>'}
+                    `).join('') : '<div class="end-box">Sem histórico disponível.</div>'}
                 </div>`;
         },
         addFila() {
@@ -355,10 +369,8 @@ const APP = {
             const q = parseFloat(document.getElementById('qt-in').value);
             const p = APP.db.produtos.find(x => x.id === s);
             if(p && q > 0) { APP.db.fila.push({ ...p, qtdSolicitada: q }); APP.view('operacional'); }
-            else { alert("SKU não encontrado ou quantidade inválida."); }
         },
         toggleTask(id) { const t = APP.db.tarefas.find(x => x.id === id); if(t){ t.done = !t.done; APP.view('detalheTarefas'); } },
-        toggleUC(id) { const a = APP.db.auditoria.find(x => x.id === id); if(a){ a.done = !a.done; APP.view('detalheUC'); } },
         toggleRanking() { APP.ui.rankingAberto = !APP.ui.rankingAberto; APP.view('dash'); },
         mudarAlvo(l) { APP.ui.pdvAlvo = l; APP.processarDueloAqua(); APP.view('projetor'); },
         setFiltroEstoque(f) { APP.ui.filtroEstoque = f; APP.view('estoque'); },
